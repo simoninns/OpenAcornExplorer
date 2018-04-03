@@ -10,20 +10,20 @@ OpenAcornExplorer aims to solve this by becoming a one-stop application for both
 
 Support for ADFS images:
 
-S  -  160K Single Density (BBC Micro and Master 128)
-M  -  320K Single Density (BBC Micro and Master 128)
-L  -  640K Single Density (BBC Micro, Master 128 and RISC OS 3.1)
-D  -  800K Double Density (RISC OS 3.1)
-E  -  800K Double Density (RISC OS 3.1)
-E+ -  800K Double Density (RISC OS 3.1)
-F  - 1600K Quad Density (RISC OS 3.5)
-F+ - 1600K Quad Density (RISC OS 3.5)
+* S  -  160K Single Density (BBC Micro and Master 128)
+* M  -  320K Single Density (BBC Micro and Master 128)
+* L  -  640K Single Density (BBC Micro, Master 128 and RISC OS 3.1)
+* D  -  800K Double Density (RISC OS 3.1)
+* E  -  800K Double Density (RISC OS 3.1)
+* E+ -  800K Double Density (RISC OS 3.1)
+* F  - 1600K Quad Density (RISC OS 3.5)
+* F+ - 1600K Quad Density (RISC OS 3.5)
 
 Support for DFS images:
 
-40 Track single-sided
-80 Track single-sided
-80 Track double-sided
+* 40 Track single-sided
+* 80 Track single-sided
+* 80 Track double-sided
 
 The project road-map is to support ADFS S, M and L initially, then D, E and F (including the + versions) and then, finally, DFS.
 

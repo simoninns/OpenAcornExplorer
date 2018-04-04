@@ -15,7 +15,7 @@ Support for ADFS images:
 * L  -  640K Single Density (BBC Micro, Master 128 and RISC OS 3.1)
 * D  -  800K Double Density (RISC OS 3.1)
 * E  -  800K Double Density (RISC OS 3.1)
-* E+ -  800K Double Density (RISC OS 3.1)
+* E+ -  800K Double Density (RISC OS 3.5)
 * F  - 1600K Quad Density (RISC OS 3.5)
 * F+ - 1600K Quad Density (RISC OS 3.5)
 

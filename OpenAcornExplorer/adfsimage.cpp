@@ -1,6 +1,6 @@
 /************************************************************************
 
-    mainwindow.cpp
+    adfsimage.cpp
 
     OpenAcornExplorer - Acorn 8-bit and 32-bit disc image manipulation
     Copyright (C) 2018 Simon Inns
@@ -24,41 +24,9 @@
 
 ************************************************************************/
 
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
+#include "adfsimage.h"
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
-{
-    ui->setupUi(this);
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-// Test button - Create image
-void MainWindow::on_testCreateImagePushButton_clicked()
-{
-
-}
-
-// Test button - Open image
-void MainWindow::on_testOpenImagePushButton_clicked()
-{
-
-}
-
-// Test button - List directory
-void MainWindow::on_testListDirectoryPushButton_clicked()
-{
-
-}
-
-// Test button - Close image
-void MainWindow::on_testCloseImagePushButton_clicked()
+AdfsImage::AdfsImage()
 {
 
 }

@@ -41,6 +41,15 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+private slots:
+    void on_testCreateImagePushButton_clicked();
+
+    void on_testOpenImagePushButton_clicked();
+
+    void on_testListDirectoryPushButton_clicked();
+
+    void on_testCloseImagePushButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

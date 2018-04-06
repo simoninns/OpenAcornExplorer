@@ -99,6 +99,7 @@ void AdfsImage::readDirectory(qint64 sector)
         qDebug() << "Directory name is" << adfsDirectory.getDirectoryName();
         qDebug() << "Directory access is" << adfsDirectory.getDirectoryAccess();
         qDebug() << "Directory title is" << adfsDirectory.getDirectoryTitle();
+        qDebug() << "Listing directory entries:";
 
         // List files in the directory
         for (qint64 fileNumber = 0; fileNumber < 47; fileNumber++) {

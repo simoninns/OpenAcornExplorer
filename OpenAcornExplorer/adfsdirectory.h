@@ -53,6 +53,9 @@ public:
 private:
     QByteArray *directoryData;
     qint64 sectorSize;
+
+    QString getTerminatedString(QByteArray data, qint64 maximumLength);
+    qint64 convertBytesToInt(quint8 byte0, quint8 byte1, quint8 byte2, quint8 byte3);
 };
 
 #endif // ADFSDIRECTORY_H

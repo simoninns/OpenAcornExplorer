@@ -53,8 +53,8 @@ void MainWindow::on_testOpenImagePushButton_clicked()
 
     // Open an image file (ADFS L format 640K image)
     qDebug() << "MainWindow::on_testOpenImagePushButton_clicked(): Opening ADFS image";
-    adfsImage.open("D:\\simon\\Documents\\GitHub\\OpenAcornExplorer\\ADFS Test images\\ADFS L 640K.adl");
-    //adfsImage.open("D:\\simon\\Documents\\GitHub\\OpenAcornExplorer\\ADFS Test images\\ADFS M 320K.adf");
+    adfsImage.open("D:\\simon\\Documents\\GitHub\\OpenAcornExplorer\\ADFS Test images\\ADFS L 640K Stress.adl");
+    //adfsImage.open("D:\\simon\\Documents\\GitHub\\OpenAcornExplorer\\ADFS Test images\\ADFS L 640K.adl");
 
     // Perform some tests
     qDebug() << "MainWindow::on_testOpenImagePushButton_clicked(): Reading free space map";

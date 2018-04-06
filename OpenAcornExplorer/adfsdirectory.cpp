@@ -97,21 +97,7 @@ QString AdfsDirectory::getEntryName(qint64 entryNumber)
     entryNameAndAccess[2] = entryNameAndAccess[2] & 0x7F;
     entryNameAndAccess[3] = entryNameAndAccess[3] & 0x7F;
 
-    // Handle empty string and ASCII CR termination
-    qint64 stringLength = 10;
-    if (entryNameAndAccess.at(0) != 0x00) {
-        for (qint64 pointer = 0; pointer < 10; pointer++) {
-            if (entryNameAndAccess.at(pointer) == 0x0D || entryNameAndAccess.at(pointer) == 0x00) {
-                stringLength = pointer;
-                break;
-            }
-        }
-    } else {
-        // Empty string
-        return QString("");
-    }
-
-    return QString::fromLatin1(entryNameAndAccess, stringLength);
+    return getTerminatedString(entryNameAndAccess, 10);
 }
 
 qint64 AdfsDirectory::getEntryAccess(qint64 entryNumber)
@@ -138,27 +124,48 @@ qint64 AdfsDirectory::getEntryAccess(qint64 entryNumber)
 
 qint64 AdfsDirectory::getEntryLoadAddress(qint64 entryNumber)
 {
-    return 0;
+    qint64 entryOffset = 15 + (entryNumber * 26); // 15 bytes before entries, each entry is 26 bytes
+
+    return convertBytesToInt(directoryData->at(3 + entryOffset),
+                             directoryData->at(2 + entryOffset),
+                             directoryData->at(1 + entryOffset),
+                             directoryData->at(0 + entryOffset));
 }
 
 qint64 AdfsDirectory::getEntryExecutionAddress(qint64 entryNumber)
 {
-    return 0;
+    qint64 entryOffset = 19 + (entryNumber * 26); // 15 bytes before entries, each entry is 26 bytes
+
+    return convertBytesToInt(directoryData->at(3 + entryOffset),
+                             directoryData->at(2 + entryOffset),
+                             directoryData->at(1 + entryOffset),
+                             directoryData->at(0 + entryOffset));
 }
 
 qint64 AdfsDirectory::getEntryLength(qint64 entryNumber)
 {
-    return 0;
+    qint64 entryOffset = 23 + (entryNumber * 26); // 15 bytes before entries, each entry is 26 bytes
+
+    return convertBytesToInt(directoryData->at(3 + entryOffset),
+                             directoryData->at(2 + entryOffset),
+                             directoryData->at(1 + entryOffset),
+                             directoryData->at(0 + entryOffset));
 }
 
 qint64 AdfsDirectory::getEntryStartSector(qint64 entryNumber)
 {
-    return 0;
+    qint64 entryOffset = 27 + (entryNumber * 26); // 15 bytes before entries, each entry is 26 bytes
+
+    return convertBytesToInt(directoryData->at(3 + entryOffset),
+                             directoryData->at(2 + entryOffset),
+                             directoryData->at(1 + entryOffset),
+                             directoryData->at(0 + entryOffset));
 }
 
 qint64 AdfsDirectory::getEntrySequenceNumber(qint64 entryNumber)
 {
-    return 0;
+    qint64 entryOffset = 30 + (entryNumber * 26); // 15 bytes before entries, each entry is 26 bytes
+    return directoryData->at(entryOffset);
 }
 
 QString AdfsDirectory::getDirectoryName()
@@ -172,21 +179,7 @@ QString AdfsDirectory::getDirectoryName()
     directoryNameAndAccess[2] = directoryNameAndAccess[2] & 0x7F;
     directoryNameAndAccess[3] = directoryNameAndAccess[3] & 0x7F;
 
-    // Handle empty string and ASCII CR termination
-    qint64 stringLength = 10;
-    if (directoryNameAndAccess.at(0) != 0x00) {
-        for (qint64 pointer = 0; pointer < 10; pointer++) {
-            if (directoryNameAndAccess.at(pointer) == 0x0D || directoryNameAndAccess.at(pointer) == 0x00) {
-                stringLength = pointer;
-                break;
-            }
-        }
-    } else {
-        // Empty string
-        return QString("");
-    }
-
-    return QString::fromLatin1(directoryNameAndAccess, stringLength);
+    return getTerminatedString(directoryNameAndAccess, 10);
 }
 
 qint64 AdfsDirectory::getDirectoryAccess()
@@ -212,21 +205,43 @@ qint64 AdfsDirectory::getDirectoryAccess()
 QString AdfsDirectory::getDirectoryTitle()
 {
     QByteArray title;
-    title = directoryData->mid(1241, 20);
+    title = directoryData->mid(1241, 19);
 
+    return getTerminatedString(title, 19);
+}
+
+// Private methods
+
+// Takes QByteArray data containing string and detects either termination
+// or maximum allowed length - returns a QString result
+QString AdfsDirectory::getTerminatedString(QByteArray data, qint64 maximumLength)
+{
     // Handle empty string and ASCII CR termination
-    qint64 stringLength = 20;
-    if (title.at(0) != 0x00) {
-        for (qint64 pointer = 0; pointer < 20; pointer++) {
-            if (title.at(pointer) == 0x0D  || title.at(pointer) == 0x00) {
+    qint64 stringLength = maximumLength;
+    if (data.at(0) != 0x00 && data.at(0) != 0x0D) {
+        for (qint64 pointer = 0; pointer < maximumLength; pointer++) {
+            if (data.at(pointer) == 0x0D  || data.at(pointer) == 0x00) {
                 stringLength = pointer;
                 break;
             }
         }
     } else {
-        // Empty string
+        // Return empty string
         return QString("");
     }
 
-    return QString::fromLatin1(title, stringLength);
+    return QString::fromLatin1(data, stringLength);
+}
+
+// Convert 4 bytes to an integer (byte0 is MSB, byte 3 is LSB)
+qint64 AdfsDirectory::convertBytesToInt(quint8 byte0, quint8 byte1, quint8 byte2, quint8 byte3)
+{
+    quint32 value = 0;
+
+    value = byte0 << 24;
+    value += byte1 << 16;
+    value += byte2 << 8;
+    value += byte3;
+
+    return (qint64)value;
 }

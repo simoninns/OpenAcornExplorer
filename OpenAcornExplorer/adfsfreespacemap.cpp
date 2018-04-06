@@ -56,10 +56,12 @@ bool AdfsFreeSpaceMap::setMap(QByteArray freeSpaceMapDataParam)
     } else {
         // Checksums are not valid
         if (discChecksumSector0 != calcChecksumSector0)
-            qDebug() << "AdfsFreeSpaceMap::setMap(): Error, sector 0 checksum is invalid!";
+            qDebug() << "AdfsFreeSpaceMap::setMap(): Error, sector 0 checksum is invalid! Calculated =" << calcChecksumSector0 <<
+                        " on disc =" << discChecksumSector0;
 
         if (discChecksumSector1 != calcChecksumSector1)
-            qDebug() << "AdfsFreeSpaceMap::setMap(): Error, sector 1 checksum is invalid!";
+            qDebug() << "AdfsFreeSpaceMap::setMap(): Error, sector 1 checksum is invalid! Calculated =" << calcChecksumSector1 <<
+                        " on disc =" << discChecksumSector1;
     }
 
     return freeSpaceMapValid;
@@ -131,7 +133,7 @@ qint64 AdfsFreeSpaceMap::calculateChecksum(qint64 sectorNumber)
 
     for (qint64 pointer = (sectorSize - 2); pointer >= 0; pointer--) {
         if (sum > 255) sum = (sum + 1) & 0xFF;
-        sum += (quint16)freeSpaceMapData->at((sectorNumber * sectorSize) + pointer);
+        sum += (quint8)freeSpaceMapData->at((sectorNumber * sectorSize) + pointer);
     }
     sum &= 0xFF;
 

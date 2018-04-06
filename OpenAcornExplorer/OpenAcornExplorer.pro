@@ -26,11 +26,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    adfsimage.cpp
+    adfsimage.cpp \
+    discimage.cpp
 
 HEADERS += \
         mainwindow.h \
-    adfsimage.h
+    adfsimage.h \
+    discimage.h
 
 FORMS += \
         mainwindow.ui

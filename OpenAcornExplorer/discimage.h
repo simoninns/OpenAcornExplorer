@@ -1,6 +1,6 @@
 /************************************************************************
 
-    adfsimage.h
+    discimage.h
 
     OpenAcornExplorer - Acorn 8-bit and 32-bit disc image manipulation
     Copyright (C) 2018 Simon Inns
@@ -24,14 +24,30 @@
 
 ************************************************************************/
 
-#ifndef ADFSIMAGE_H
-#define ADFSIMAGE_H
+#ifndef DISCIMAGE_H
+#define DISCIMAGE_H
 
-class AdfsImage
+#include <QApplication>
+#include <QDebug>
+#include <QFile>
+
+class DiscImage
 {
 public:
-    AdfsImage();
+    DiscImage(QString filename, bool interleavedParam, qint64 sectorSizeParam);
+    ~DiscImage();
 
+    QByteArray readSector(qint64 sectorNumber);
+    bool writeSector(qint64 sectorNumber, QByteArray sectorData);
+
+private:
+    bool interleavedFlag;
+    qint64 sectorSize;
+    QFile *discImageFile;
+    bool discImageOpen;
+    qint64 fileBytePosition;
+
+    qint64 translateSectorToByte(qint64 sectorNumber);
 };
 
-#endif // ADFSIMAGE_H
+#endif // DISCIMAGE_H

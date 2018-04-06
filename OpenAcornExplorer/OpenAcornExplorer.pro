@@ -27,12 +27,14 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     adfsimage.cpp \
-    discimage.cpp
+    discimage.cpp \
+    adfsfreespacemap.cpp
 
 HEADERS += \
         mainwindow.h \
     adfsimage.h \
-    discimage.h
+    discimage.h \
+    adfsfreespacemap.h
 
 FORMS += \
         mainwindow.ui

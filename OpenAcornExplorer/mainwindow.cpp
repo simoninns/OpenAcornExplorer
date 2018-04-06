@@ -48,7 +48,23 @@ void MainWindow::on_testCreateImagePushButton_clicked()
 // Test button - Open image
 void MainWindow::on_testOpenImagePushButton_clicked()
 {
+    // Create an ADFS image object
+    AdfsImage adfsImage;
 
+    // Open an image file (ADFS L format 640K image)
+    qDebug() << "MainWindow::on_testOpenImagePushButton_clicked(): Opening ADFS image";
+    adfsImage.open("D:\\simon\\Documents\\GitHub\\OpenAcornExplorer\\ADFS Test images\\ADFS L 640K.adl");
+    //adfsImage.open("D:\\simon\\Documents\\GitHub\\OpenAcornExplorer\\ADFS Test images\\ADFS M 320K.adf");
+
+    // Perform some tests
+    qDebug() << "MainWindow::on_testOpenImagePushButton_clicked(): Performing tests";
+    adfsImage.readFreeSpaceMap();
+
+    // Close the image file
+    qDebug() << "MainWindow::on_testOpenImagePushButton_clicked(): Closing ADFS image";
+    adfsImage.close();
+
+    qDebug() << "MainWindow::on_testOpenImagePushButton_clicked(): Done";
 }
 
 // Test button - List directory

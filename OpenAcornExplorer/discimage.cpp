@@ -27,26 +27,12 @@
 #include "discimage.h"
 
 // Class constructor
-DiscImage::DiscImage(QString filename, bool interleavedParam, qint64 sectorSizeParam)
+DiscImage::DiscImage()
 {
-    // Set the image attributes
-    interleavedFlag = interleavedParam;
-    sectorSize = sectorSizeParam;
-
-    // Open the file
+    // Set the default image attributes
+    interleavedFlag = false;
+    sectorSize = 256;
     discImageOpen = false;
-    discImageFile = new QFile(filename);
-
-    if (!discImageFile->open(QIODevice::ReadWrite)) {
-        qDebug() << "DiscImage::DiscImage(): Failed to open disc image file";
-        return;
-    }
-
-    // Disc image file opened successfully
-    discImageOpen = true;
-    fileBytePosition = 0;
-    qDebug() << "DiscImage::DiscImage(): Disc image file opened successfully";
-    return;
 }
 
 // Class destructor
@@ -55,11 +41,37 @@ DiscImage::~DiscImage()
     // Is there an open file?
     if (discImageOpen) {
         qDebug() << "DiscImage::~DiscImage(): Closing disc image file";
+        close();
+    }
+}
+
+bool DiscImage::open(QString filename)
+{
+    // Open the file
+    discImageOpen = false;
+    discImageFile = new QFile(filename);
+
+    if (!discImageFile->open(QIODevice::ReadWrite)) {
+        qDebug() << "DiscImage::DiscImage(): Failed to open disc image file";
+        return false;
+    }
+
+    // Disc image file opened successfully
+    discImageOpen = true;
+    fileBytePosition = 0;
+    return true;
+}
+
+void DiscImage::close()
+{
+    // Is there an open file?
+    if (discImageOpen) {
+        qDebug() << "DiscImage::~DiscImage(): Closing disc image file";
         discImageFile->close();
     }
 }
 
-// Read a sector from a disc image
+// Read a single sector from a disc image
 QByteArray DiscImage::readSector(qint64 sectorNumber)
 {
     QByteArray sectorData;
@@ -67,21 +79,21 @@ QByteArray DiscImage::readSector(qint64 sectorNumber)
 
     // Check that a disc image has been successfully opened
     if (!discImageOpen) {
-        qDebug() << "DiscImage::readSector(): Disc image is not open!";
+        qDebug() << "DiscImage::readSector(S): Disc image is not open!";
         return sectorData; // Returns an empty sector
     }
 
     // Read a sector of data starting from startByte
-    qDebug() << "DiscImage::readSector(): Reading sector" << sectorNumber;
+    qDebug() << "DiscImage::readSector(S): Reading sector" << sectorNumber;
 
     // Check the current file position and seek if necessary
     if (fileBytePosition != translateSectorToByte(sectorNumber)) {
-     if (!discImageFile->seek(translateSectorToByte(sectorNumber))) {
-        // Seek operation failed...
-        qDebug() << "DiscImage::readSector(): Could not seek to sector" << sectorNumber;
-        return sectorData; // Returns an empty sector
-     }
-     fileBytePosition = translateSectorToByte(sectorNumber);
+        if (!discImageFile->seek(translateSectorToByte(sectorNumber))) {
+            // Seek operation failed...
+            qDebug() << "DiscImage::readSector(S): Could not seek to sector" << sectorNumber;
+            return sectorData; // Returns an empty sector
+        }
+        fileBytePosition = translateSectorToByte(sectorNumber);
     }
 
     qint64 bytesRead = 0;
@@ -89,10 +101,53 @@ QByteArray DiscImage::readSector(qint64 sectorNumber)
 
     // Was read operation successful?
     if (bytesRead == -1) {
-     qDebug() << "DiscImage::readSector(): Could not read sector" << sectorNumber;
+        qDebug() << "DiscImage::readSector(S): Could not read sector" << sectorNumber;
     } else {
-     // Successful - update file position pointer
-     fileBytePosition += bytesRead;
+        // Successful - update file position pointer
+        fileBytePosition += bytesRead;
+    }
+
+    return sectorData;
+}
+
+// Read multiple sectors from a disc image
+QByteArray DiscImage::readSector(qint64 startSectorNumber, qint64 endSectorNumber)
+{
+    QByteArray sectorData;
+    qint64 numberOfSectors = endSectorNumber - startSectorNumber + 1;
+
+    sectorData.resize(sectorSize * numberOfSectors);
+
+    // Check that a disc image has been successfully opened
+    if (!discImageOpen) {
+        qDebug() << "DiscImage::readSector(M): Disc image is not open!";
+        return sectorData; // Returns an empty sector
+    }
+
+    // Read a sector of data starting from startByte
+    qDebug() << "DiscImage::readSector(M): Reading sectors" << startSectorNumber << "to" << endSectorNumber;
+
+    // Check the current file position and seek if necessary
+    if (fileBytePosition != translateSectorToByte(startSectorNumber)) {
+        if (!discImageFile->seek(translateSectorToByte(startSectorNumber))) {
+            // Seek operation failed...
+            qDebug() << "DiscImage::readSector(M): Could not seek to sector" << startSectorNumber;
+            return sectorData; // Returns an empty sector
+        }
+        fileBytePosition = translateSectorToByte(startSectorNumber);
+    }
+
+    qint64 bytesRead = 0;
+    qDebug() << "DiscImage::readSector(M): Reading from disc image";
+    bytesRead = discImageFile->read(sectorData.data(), sectorSize * numberOfSectors);
+    qDebug() << "DiscImage::readSector(M): Reading complete";
+
+    // Was read operation successful?
+    if (bytesRead == -1) {
+        qDebug() << "DiscImage::readSector(M): Could not read sectors from" << startSectorNumber;
+    } else {
+        // Successful - update file position pointer
+        fileBytePosition += bytesRead;
     }
 
     return sectorData;
@@ -112,12 +167,12 @@ bool DiscImage::writeSector(qint64 sectorNumber, QByteArray sectorData)
 
     // Check the current file position and seek if necessary
     if (fileBytePosition != translateSectorToByte(sectorNumber)) {
-     if (!discImageFile->seek(translateSectorToByte(sectorNumber))) {
+        if (!discImageFile->seek(translateSectorToByte(sectorNumber))) {
         // Seek operation failed...
-        qDebug() << "DiscImage::writeSector(): Could not seek to sector" << sectorNumber;
-        return false;
-     }
-     fileBytePosition = translateSectorToByte(sectorNumber);
+            qDebug() << "DiscImage::writeSector(): Could not seek to sector" << sectorNumber;
+            return false;
+        }
+        fileBytePosition = translateSectorToByte(sectorNumber);
     }
 
     qint64 bytesWritten = 0;
@@ -125,16 +180,34 @@ bool DiscImage::writeSector(qint64 sectorNumber, QByteArray sectorData)
 
     // Was write operation successful?
     if (bytesWritten == -1) {
-     qDebug() << "DiscImage::writeSector(): Could not write sector" << sectorNumber;
-     return false;
+        qDebug() << "DiscImage::writeSector(): Could not write sector" << sectorNumber;
+        return false;
     } else {
-     // Successful - update file position pointer
-     fileBytePosition += bytesWritten;
+        // Successful - update file position pointer
+        fileBytePosition += bytesWritten;
     }
 
     return true;
 }
 
+// Get and set methods
+void DiscImage::setSectorSize(qint64 sectorSizeParam)
+{
+    // Sanity check the sector size
+    if (sectorSizeParam != 256 && sectorSizeParam != 512) sectorSizeParam = 256;
+
+    sectorSize = sectorSizeParam;
+}
+
+qint64 DiscImage::getSectorSize()
+{
+    return sectorSize;
+}
+
+void DiscImage::setInterleavedFlag(bool interleavedParam)
+{
+    interleavedFlag = interleavedParam;
+}
 
 // Private methods
 

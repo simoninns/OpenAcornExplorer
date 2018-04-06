@@ -27,10 +27,25 @@
 #ifndef ADFSIMAGE_H
 #define ADFSIMAGE_H
 
+#include "discimage.h"
+#include "adfsfreespacemap.h"
+
+#include <QApplication>
+#include <QDebug>
+#include <QFile>
+
 class AdfsImage
 {
 public:
     AdfsImage();
+
+    bool open(QString filename);
+    void close();
+    void readFreeSpaceMap();
+    void readDirectory(qint64 sector);
+
+private:
+    DiscImage *adfsDiscImage;
 
 };
 

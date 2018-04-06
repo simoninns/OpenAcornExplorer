@@ -1,6 +1,6 @@
 /************************************************************************
 
-    discimage.h
+    adfsfreespacemap.cpp
 
     OpenAcornExplorer - Acorn 8-bit and 32-bit disc image manipulation
     Copyright (C) 2018 Simon Inns
@@ -24,38 +24,31 @@
 
 ************************************************************************/
 
-#ifndef DISCIMAGE_H
-#define DISCIMAGE_H
+#ifndef ADFSFREESPACEMAP_H
+#define ADFSFREESPACEMAP_H
 
 #include <QApplication>
 #include <QDebug>
-#include <QFile>
 
-class DiscImage
+class AdfsFreeSpaceMap
 {
 public:
-    DiscImage();
-    ~DiscImage();
+    AdfsFreeSpaceMap();
+    bool setMap(QByteArray freeSpaceMapDataParam);
 
-    bool open(QString filename);
-    void close();
-
-    QByteArray readSector(qint64 sectorNumber);
-    QByteArray readSector(qint64 startSectorNumber, qint64 endSectorNumber);
-    bool writeSector(qint64 sectorNumber, QByteArray sectorData);
-
-    void setSectorSize(qint64 sectorSizeParam);
-    qint64 getSectorSize();
-    void setInterleavedFlag(bool interleavedParam);
+    qint64 getFreeSpaceStartSector(qint64 freeSpaceNumber);
+    qint64 getFreeSpaceLength(qint64 freeSpaceNumber);
+    qint64 getTotalSectorsOnDisc();
+    qint64 getDiscIdentifier();
+    qint64 getBootOptionNumber();
 
 private:
-    bool interleavedFlag;
+    QByteArray *freeSpaceMapData;
     qint64 sectorSize;
-    QFile *discImageFile;
-    bool discImageOpen;
-    qint64 fileBytePosition;
 
-    qint64 translateSectorToByte(qint64 sectorNumber);
+    qint64 convertBytesToInt(quint8 byte0, quint8 byte1);
+    qint64 convertBytesToInt(quint8 byte0, quint8 byte1, quint8 byte2);
+    qint64 calculateChecksum(qint64 sectorNumber);
 };
 
-#endif // DISCIMAGE_H
+#endif // ADFSFREESPACEMAP_H

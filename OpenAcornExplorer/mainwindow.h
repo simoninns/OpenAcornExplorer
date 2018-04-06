@@ -29,6 +29,8 @@
 
 #include <QMainWindow>
 
+#include "adfsimage.h"
+
 namespace Ui {
 class MainWindow;
 }

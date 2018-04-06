@@ -57,8 +57,11 @@ void MainWindow::on_testOpenImagePushButton_clicked()
     //adfsImage.open("D:\\simon\\Documents\\GitHub\\OpenAcornExplorer\\ADFS Test images\\ADFS M 320K.adf");
 
     // Perform some tests
-    qDebug() << "MainWindow::on_testOpenImagePushButton_clicked(): Performing tests";
+    qDebug() << "MainWindow::on_testOpenImagePushButton_clicked(): Reading free space map";
     adfsImage.readFreeSpaceMap();
+
+    qDebug() << "MainWindow::on_testOpenImagePushButton_clicked(): Reading root directory";
+    adfsImage.readDirectory(2); // Read the root directory (sector 2)
 
     // Close the image file
     qDebug() << "MainWindow::on_testOpenImagePushButton_clicked(): Closing ADFS image";

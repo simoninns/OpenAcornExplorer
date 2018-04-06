@@ -29,6 +29,7 @@
 
 #include "discimage.h"
 #include "adfsfreespacemap.h"
+#include "adfsdirectory.h"
 
 #include <QApplication>
 #include <QDebug>

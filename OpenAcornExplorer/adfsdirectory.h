@@ -1,6 +1,6 @@
 /************************************************************************
 
-    adfsfreespacemap.h
+    adfsdirectory.cpp
 
     OpenAcornExplorer - Acorn 8-bit and 32-bit disc image manipulation
     Copyright (C) 2018 Simon Inns
@@ -24,31 +24,35 @@
 
 ************************************************************************/
 
-#ifndef ADFSFREESPACEMAP_H
-#define ADFSFREESPACEMAP_H
+#ifndef ADFSDIRECTORY_H
+#define ADFSDIRECTORY_H
 
 #include <QApplication>
 #include <QDebug>
 
-class AdfsFreeSpaceMap
+class AdfsDirectory
 {
 public:
-    AdfsFreeSpaceMap();
-    bool setMap(QByteArray freeSpaceMapDataParam);
+    AdfsDirectory();
 
-    qint64 getFreeSpaceStartSector(qint64 freeSpaceNumber);
-    qint64 getFreeSpaceLength(qint64 freeSpaceNumber);
-    qint64 getTotalSectorsOnDisc();
-    qint64 getDiscIdentifier();
-    qint64 getBootOptionNumber();
+    bool setDirectory(QByteArray directoryDataParam);
+
+    qint64 getMasterSequenceNumber();
+    QString getIdentificationString();
+    QString getEntryName(qint64 entryNumber);
+    qint64 getEntryAccess(qint64 entryNumber);
+    qint64 getEntryLoadAddress(qint64 entryNumber);
+    qint64 getEntryExecutionAddress(qint64 entryNumber);
+    qint64 getEntryLength(qint64 entryNumber);
+    qint64 getEntryStartSector(qint64 entryNumber);
+    qint64 getEntrySequenceNumber(qint64 entryNumber);
+    QString getDirectoryName();
+    qint64 getDirectoryAccess();
+    QString getDirectoryTitle();
 
 private:
-    QByteArray *freeSpaceMapData;
+    QByteArray *directoryData;
     qint64 sectorSize;
-
-    qint64 convertBytesToInt(quint8 byte0, quint8 byte1);
-    qint64 convertBytesToInt(quint8 byte0, quint8 byte1, quint8 byte2);
-    qint64 calculateChecksum(qint64 sectorNumber);
 };
 
-#endif // ADFSFREESPACEMAP_H
+#endif // ADFSDIRECTORY_H

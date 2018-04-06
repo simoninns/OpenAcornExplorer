@@ -79,6 +79,43 @@ void AdfsImage::readFreeSpaceMap()
 
 void AdfsImage::readDirectory(qint64 sector)
 {
+    // The root directory is stored in sectors 2 to 6 of all ADFS discs
+    QByteArray directoryData;
+    directoryData.resize(5 * adfsDiscImage->getSectorSize());
 
+    // Read 6 sectors of directory data
+    qDebug() << "AdfsImage::readDirectory(): Reading directory data";
+    directoryData = adfsDiscImage->readSector(sector, sector + 5);
+    qDebug() << "AdfsImage::readDirectory(): Reading directory data complete";
+
+    // Create the directory object (test only!)
+    AdfsDirectory adfsDirectory;
+
+    // Put the free space map data into the object
+    if (adfsDirectory.setDirectory(directoryData)) {
+        qDebug() << "Root directory is valid";
+        qDebug() << "Directory master sequence number is" << adfsDirectory.getMasterSequenceNumber();
+        qDebug() << "Directory identification string is" << adfsDirectory.getIdentificationString();
+        qDebug() << "Directory name is" << adfsDirectory.getDirectoryName();
+        qDebug() << "Directory access is" << adfsDirectory.getDirectoryAccess();
+        qDebug() << "Directory title is" << adfsDirectory.getDirectoryTitle();
+
+        // List files in the directory
+        for (qint64 fileNumber = 0; fileNumber < 47; fileNumber++) {
+            // Check for last entry
+            if (adfsDirectory.getEntryName(fileNumber).isEmpty()) {
+                // Last entry
+                qDebug() << "  End of directory entries";
+                break;
+            }
+
+            // List entry details
+            qDebug() << "  Entry" << fileNumber << "name is" << adfsDirectory.getEntryName(fileNumber);
+            qDebug() << "  Entry" << fileNumber << "attributes are" << adfsDirectory.getEntryAccess(fileNumber);
+        }
+    } else {
+        // Root directory is not valid!
+        qDebug() << "Root directory is not valid!";
+    }
 }
 

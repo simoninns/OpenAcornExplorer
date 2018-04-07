@@ -1,6 +1,6 @@
 /************************************************************************
 
-    mainwindow.h
+    adfsdirectoryentry.h
 
     OpenAcornExplorer - Acorn 8-bit and 32-bit disc image manipulation
     Copyright (C) 2018 Simon Inns
@@ -24,39 +24,31 @@
 
 ************************************************************************/
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef ADFSDIRECTORYENTRY_H
+#define ADFSDIRECTORYENTRY_H
 
-#include <QMainWindow>
+#include <QApplication>
+#include <QDebug>
 
-#include "adfsimage.h"
-#include "adfsdirectorymodel.h"
-
-namespace Ui {
-class MainWindow;
-}
-
-class MainWindow : public QMainWindow
+class AdfsDirectoryEntry
 {
-    Q_OBJECT
-
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit AdfsDirectoryEntry(const QList<QVariant> &data, AdfsDirectoryEntry *parentItem = 0);
+    ~AdfsDirectoryEntry();
 
-private slots:
-    void on_testCreateImagePushButton_clicked();
+    void appendChild(AdfsDirectoryEntry *child);
 
-    void on_testOpenImagePushButton_clicked();
-
-    void on_testListDirectoryPushButton_clicked();
-
-    void on_testCloseImagePushButton_clicked();
+    AdfsDirectoryEntry *child(int row);
+    int childCount() const;
+    int columnCount() const;
+    QVariant data(int column) const;
+    int row() const;
+    AdfsDirectoryEntry *parentItem();
 
 private:
-    Ui::MainWindow *ui;
-
-    AdfsDirectoryModel *model;
+    QList<AdfsDirectoryEntry*> m_childItems;
+    QList<QVariant> m_itemData;
+    AdfsDirectoryEntry *m_parentItem;
 };
 
-#endif // MAINWINDOW_H
+#endif // ADFSDIRECTORYENTRY_H

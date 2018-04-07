@@ -1,6 +1,6 @@
 /************************************************************************
 
-    mainwindow.h
+    adfsdirectoryentry.cpp
 
     OpenAcornExplorer - Acorn 8-bit and 32-bit disc image manipulation
     Copyright (C) 2018 Simon Inns
@@ -24,39 +24,53 @@
 
 ************************************************************************/
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#include "adfsdirectoryentry.h"
 
-#include <QMainWindow>
-
-#include "adfsimage.h"
-#include "adfsdirectorymodel.h"
-
-namespace Ui {
-class MainWindow;
+AdfsDirectoryEntry::AdfsDirectoryEntry(const QList<QVariant> &data, AdfsDirectoryEntry *parent)
+{
+    m_parentItem = parent;
+    m_itemData = data;
 }
 
-class MainWindow : public QMainWindow
+AdfsDirectoryEntry::~AdfsDirectoryEntry()
 {
-    Q_OBJECT
+    qDeleteAll(m_childItems);
+}
 
-public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+void AdfsDirectoryEntry::appendChild(AdfsDirectoryEntry *item)
+{
+    m_childItems.append(item);
+}
 
-private slots:
-    void on_testCreateImagePushButton_clicked();
+AdfsDirectoryEntry *AdfsDirectoryEntry::child(int row)
+{
+    return m_childItems.value(row);
+}
 
-    void on_testOpenImagePushButton_clicked();
+int AdfsDirectoryEntry::childCount() const
+{
+    return m_childItems.count();
+}
 
-    void on_testListDirectoryPushButton_clicked();
+int AdfsDirectoryEntry::row() const
+{
+    if (m_parentItem)
+        return m_parentItem->m_childItems.indexOf(const_cast<AdfsDirectoryEntry*>(this));
 
-    void on_testCloseImagePushButton_clicked();
+    return 0;
+}
 
-private:
-    Ui::MainWindow *ui;
+int AdfsDirectoryEntry::columnCount() const
+{
+    return m_itemData.count();
+}
 
-    AdfsDirectoryModel *model;
-};
+QVariant AdfsDirectoryEntry::data(int column) const
+{
+    return m_itemData.value(column);
+}
 
-#endif // MAINWINDOW_H
+AdfsDirectoryEntry *AdfsDirectoryEntry::parentItem()
+{
+    return m_parentItem;
+}

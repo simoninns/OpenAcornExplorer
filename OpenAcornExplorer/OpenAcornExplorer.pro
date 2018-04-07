@@ -29,14 +29,18 @@ SOURCES += \
     adfsimage.cpp \
     discimage.cpp \
     adfsfreespacemap.cpp \
-    adfsdirectory.cpp
+    adfsdirectory.cpp \
+    adfsdirectorymodel.cpp \
+    adfsdirectoryentry.cpp
 
 HEADERS += \
         mainwindow.h \
     adfsimage.h \
     discimage.h \
     adfsfreespacemap.h \
-    adfsdirectory.h
+    adfsdirectory.h \
+    adfsdirectorymodel.h \
+    adfsdirectoryentry.h
 
 FORMS += \
         mainwindow.ui

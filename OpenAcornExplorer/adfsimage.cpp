@@ -26,6 +26,11 @@
 
 #include "adfsimage.h"
 
+// TODO:
+//
+// This class should be merged with the AdfsDirectoryModel class!
+//
+
 AdfsImage::AdfsImage()
 {
     adfsDiscImage = new DiscImage;

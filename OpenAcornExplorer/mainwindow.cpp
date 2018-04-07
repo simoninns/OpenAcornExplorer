@@ -32,6 +32,18 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    // Populate the tree view (test only)
+
+    QFile testFile("D:\\simon\\Documents\\GitHub\\OpenAcornExplorer\\ADFS Test images\\treetest.txt");
+    if (!testFile.open(QIODevice::ReadOnly)){
+        qDebug() << "Could not open test file!!!";
+    }
+
+    model = new AdfsDirectoryModel(testFile.readAll());
+    testFile.close();
+
+    ui->treeView->setModel(model);
 }
 
 MainWindow::~MainWindow()

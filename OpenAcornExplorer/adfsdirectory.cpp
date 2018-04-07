@@ -37,7 +37,7 @@ bool AdfsDirectory::setDirectory(QByteArray directoryDataParam)
 {
     bool directoryValid = false;
 
-    // Copy the free space map data into the object
+    // Copy the directory data into the object
     directoryData->clear();
     directoryData->append(directoryDataParam);
 
@@ -58,12 +58,8 @@ bool AdfsDirectory::setDirectory(QByteArray directoryDataParam)
 
 qint64 AdfsDirectory::getMasterSequenceNumber()
 {
-    quint8 masterSequenceNumber;
-
-    // Note: This is in BCD, so this won't work as-is!
-    masterSequenceNumber = directoryData->at(0); // Also present at 1274
-
-    return (qint64)masterSequenceNumber;
+    // Value is stored as binary-coded decimal
+    return convertBcdToInt(directoryData->at(0)); // Also at 1274
 }
 
 QString AdfsDirectory::getIdentificationString()
@@ -86,7 +82,8 @@ QString AdfsDirectory::getIdentificationString()
 
 QString AdfsDirectory::getEntryName(qint64 entryNumber)
 {
-    qint64 entryOffset = 5 + (entryNumber * 26); // 5 bytes before entries, each entry is 26 bytes
+    // Entry name starts at byte 5 (each entry is 26 bytes in total)
+    qint64 entryOffset = 5 + (entryNumber * 26);
 
     QByteArray entryNameAndAccess;
     entryNameAndAccess = directoryData->mid(entryOffset, 10);
@@ -100,31 +97,71 @@ QString AdfsDirectory::getEntryName(qint64 entryNumber)
     return getTerminatedString(entryNameAndAccess, 10);
 }
 
-qint64 AdfsDirectory::getEntryAccess(qint64 entryNumber)
+// Function to return the read flag of a directory entry
+bool AdfsDirectory::isEntryReadable(qint64 entryNumber)
 {
-    qint64 entryOffset = 5 + (entryNumber * 26); // 5 bytes before entries, each entry is 26 bytes
+    bool flag = false;
 
-    quint8 accessFlags = 0;
+    // Entry access starts at byte 5 (each entry is 26 bytes in total)
+    qint64 entryOffset = 5 + (entryNumber * 26);
+
     QByteArray entryNameAndAccess;
     entryNameAndAccess = directoryData->mid(entryOffset, 4);
+    if ((entryNameAndAccess[0] & 0x80) == 0x80) flag = true;
 
-    // Strip the directory name from the access attributes
-    entryNameAndAccess[0] = entryNameAndAccess[0] & 0x80;
-    entryNameAndAccess[1] = entryNameAndAccess[1] & 0x80;
-    entryNameAndAccess[2] = entryNameAndAccess[2] & 0x80;
-    entryNameAndAccess[3] = entryNameAndAccess[3] & 0x80;
+    return flag;
+}
 
-    if ((entryNameAndAccess[0] & 0x80) == 0x80) accessFlags += 1;
-    if ((entryNameAndAccess[1] & 0x80) == 0x80) accessFlags += 2;
-    if ((entryNameAndAccess[2] & 0x80) == 0x80) accessFlags += 4;
-    if ((entryNameAndAccess[3] & 0x80) == 0x80) accessFlags += 8;
+// Function to return the write flag of a directory entry
+bool AdfsDirectory::isEntryWritable(qint64 entryNumber)
+{
+    bool flag = false;
 
-    return (qint64)accessFlags;
+    // Entry access starts at byte 5 (each entry is 26 bytes in total)
+    qint64 entryOffset = 5 + (entryNumber * 26);
+
+    QByteArray entryNameAndAccess;
+    entryNameAndAccess = directoryData->mid(entryOffset, 4);
+    if ((entryNameAndAccess[1] & 0x80) == 0x80) flag = true;
+
+    return flag;
+}
+
+// Function to return the lock flag of a directory entry
+bool AdfsDirectory::isEntryLocked(qint64 entryNumber)
+{
+    bool flag = false;
+
+    // Entry access starts at byte 5 (each entry is 26 bytes in total)
+    qint64 entryOffset = 5 + (entryNumber * 26);
+
+    QByteArray entryNameAndAccess;
+    entryNameAndAccess = directoryData->mid(entryOffset, 4);
+    if ((entryNameAndAccess[2] & 0x80) == 0x80) flag = true;
+
+    return flag;
+}
+
+// Function to return the directory flag of a directory entry
+// Note: true = entry is a directory, false = entry is a file
+bool AdfsDirectory::isEntryDirectory(qint64 entryNumber)
+{
+    bool flag = false;
+
+    // Entry access starts at byte 5 (each entry is 26 bytes in total)
+    qint64 entryOffset = 5 + (entryNumber * 26);
+
+    QByteArray entryNameAndAccess;
+    entryNameAndAccess = directoryData->mid(entryOffset, 4);
+    if ((entryNameAndAccess[3] & 0x80) == 0x80) flag = true;
+
+    return flag;
 }
 
 qint64 AdfsDirectory::getEntryLoadAddress(qint64 entryNumber)
 {
-    qint64 entryOffset = 15 + (entryNumber * 26); // 15 bytes before entries, each entry is 26 bytes
+    // Entry load address starts at byte 15 (each entry is 26 bytes in total)
+    qint64 entryOffset = 15 + (entryNumber * 26);
 
     return convertBytesToInt(directoryData->at(3 + entryOffset),
                              directoryData->at(2 + entryOffset),
@@ -134,7 +171,8 @@ qint64 AdfsDirectory::getEntryLoadAddress(qint64 entryNumber)
 
 qint64 AdfsDirectory::getEntryExecutionAddress(qint64 entryNumber)
 {
-    qint64 entryOffset = 19 + (entryNumber * 26); // 15 bytes before entries, each entry is 26 bytes
+    // Entry execution address starts at byte 19 (each entry is 26 bytes in total)
+    qint64 entryOffset = 19 + (entryNumber * 26);
 
     return convertBytesToInt(directoryData->at(3 + entryOffset),
                              directoryData->at(2 + entryOffset),
@@ -144,7 +182,8 @@ qint64 AdfsDirectory::getEntryExecutionAddress(qint64 entryNumber)
 
 qint64 AdfsDirectory::getEntryLength(qint64 entryNumber)
 {
-    qint64 entryOffset = 23 + (entryNumber * 26); // 15 bytes before entries, each entry is 26 bytes
+    // Entry length starts at byte 23 (each entry is 26 bytes in total)
+    qint64 entryOffset = 23 + (entryNumber * 26);
 
     return convertBytesToInt(directoryData->at(3 + entryOffset),
                              directoryData->at(2 + entryOffset),
@@ -154,18 +193,21 @@ qint64 AdfsDirectory::getEntryLength(qint64 entryNumber)
 
 qint64 AdfsDirectory::getEntryStartSector(qint64 entryNumber)
 {
-    qint64 entryOffset = 27 + (entryNumber * 26); // 15 bytes before entries, each entry is 26 bytes
+    // Entry start sector starts at byte 27 (each entry is 26 bytes in total)
+    qint64 entryOffset = 27 + (entryNumber * 26);
 
-    return convertBytesToInt(directoryData->at(3 + entryOffset),
-                             directoryData->at(2 + entryOffset),
+    return convertBytesToInt(directoryData->at(2 + entryOffset),
                              directoryData->at(1 + entryOffset),
                              directoryData->at(0 + entryOffset));
 }
 
 qint64 AdfsDirectory::getEntrySequenceNumber(qint64 entryNumber)
 {
-    qint64 entryOffset = 30 + (entryNumber * 26); // 15 bytes before entries, each entry is 26 bytes
-    return directoryData->at(entryOffset);
+    // Entry name starts at byte 30 (each entry is 26 bytes in total)
+    qint64 entryOffset = 30 + (entryNumber * 26);
+
+    // Value is stored as binary-coded decimal
+    return convertBcdToInt(directoryData->at(entryOffset));
 }
 
 QString AdfsDirectory::getDirectoryName()
@@ -182,24 +224,40 @@ QString AdfsDirectory::getDirectoryName()
     return getTerminatedString(directoryNameAndAccess, 10);
 }
 
-qint64 AdfsDirectory::getDirectoryAccess()
+// Function to return the read flag of the directory
+bool AdfsDirectory::isDirectoryReadable()
 {
-    quint8 accessFlags = 0;
+    bool flag = false;
+
     QByteArray directoryNameAndAccess;
     directoryNameAndAccess = directoryData->mid(1228, 4);
+    if ((directoryNameAndAccess[0] & 0x80) == 0x80) flag = true;
 
-    // Strip the directory name from the access attributes
-    directoryNameAndAccess[0] = directoryNameAndAccess[0] & 0x80;
-    directoryNameAndAccess[1] = directoryNameAndAccess[1] & 0x80;
-    directoryNameAndAccess[2] = directoryNameAndAccess[2] & 0x80;
-    directoryNameAndAccess[3] = directoryNameAndAccess[3] & 0x80;
+    return flag;
+}
 
-    if ((directoryNameAndAccess[0] & 0x80) == 0x80) accessFlags += 1;
-    if ((directoryNameAndAccess[1] & 0x80) == 0x80) accessFlags += 2;
-    if ((directoryNameAndAccess[2] & 0x80) == 0x80) accessFlags += 4;
-    if ((directoryNameAndAccess[3] & 0x80) == 0x80) accessFlags += 8;
+// Function to return the write flag of the directory
+bool AdfsDirectory::isDirectoryWritable()
+{
+    bool flag = false;
 
-    return (qint64)accessFlags;
+    QByteArray directoryNameAndAccess;
+    directoryNameAndAccess = directoryData->mid(1228, 4);
+    if ((directoryNameAndAccess[1] & 0x80) == 0x80) flag = true;
+
+    return flag;
+}
+
+// Function to return the lock flag of the directory
+bool AdfsDirectory::isDirectoryLocked()
+{
+    bool flag = false;
+
+    QByteArray directoryNameAndAccess;
+    directoryNameAndAccess = directoryData->mid(1228, 4);
+    if ((directoryNameAndAccess[2] & 0x80) == 0x80) flag = true;
+
+    return flag;
 }
 
 QString AdfsDirectory::getDirectoryTitle()
@@ -244,4 +302,31 @@ qint64 AdfsDirectory::convertBytesToInt(quint8 byte0, quint8 byte1, quint8 byte2
     value += byte3;
 
     return (qint64)value;
+}
+
+// Convert 3 bytes to an integer (byte0 is MSB, byte 2 is LSB)
+qint64 AdfsDirectory::convertBytesToInt(quint8 byte0, quint8 byte1, quint8 byte2)
+{
+    quint32 value = 0;
+
+    value = byte0 << 16;
+    value += byte1 << 8;
+    value += byte2;
+
+    return (qint64)value;
+}
+
+// Convert BCD to integer
+qint64 AdfsDirectory::convertBcdToInt(quint8 byte0)
+{
+    return (qint64)(((byte0 >> 4) * 10) + (byte0 & 0x0F));
+}
+
+// Convert integer to BCD
+quint8 AdfsDirectory::convertIntToBcd(qint64 byte0)
+{
+    if (byte0 > 99) byte0 = 99;
+    if (byte0 < 0) byte0 = 0;
+
+    return (quint8)(((byte0/10) << 4) | (byte0 % 10));
 }

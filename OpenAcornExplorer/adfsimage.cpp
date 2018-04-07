@@ -97,22 +97,40 @@ void AdfsImage::readDirectory(qint64 sector)
         qDebug() << "Directory master sequence number is" << adfsDirectory.getMasterSequenceNumber();
         qDebug() << "Directory identification string is" << adfsDirectory.getIdentificationString();
         qDebug() << "Directory name is" << adfsDirectory.getDirectoryName();
-        qDebug() << "Directory access is" << adfsDirectory.getDirectoryAccess();
+
+        QString dirAttributes;
+        if (adfsDirectory.isDirectoryReadable()) dirAttributes.append("R");
+        if (adfsDirectory.isDirectoryWritable()) dirAttributes.append("W");
+        if (adfsDirectory.isDirectoryLocked()) dirAttributes.append("L");
+        qDebug() << "Directory has attributes" << dirAttributes;
+
         qDebug() << "Directory title is" << adfsDirectory.getDirectoryTitle();
         qDebug() << "Listing directory entries:";
 
-        // List files in the directory
-        for (qint64 fileNumber = 0; fileNumber < 47; fileNumber++) {
+        // List entries in the directory (maximum of 47 entries)
+        for (qint64 entryNumber = 0; entryNumber < 47; entryNumber++) {
             // Check for last entry
-            if (adfsDirectory.getEntryName(fileNumber).isEmpty()) {
+            if (adfsDirectory.getEntryName(entryNumber).isEmpty()) {
                 // Last entry
                 qDebug() << "  End of directory entries";
                 break;
             }
 
             // List entry details
-            qDebug() << "  Entry" << fileNumber << "name is" << adfsDirectory.getEntryName(fileNumber);
-            qDebug() << "  Entry" << fileNumber << "attributes are" << adfsDirectory.getEntryAccess(fileNumber);
+            qDebug() << "  Entry" << entryNumber << "name is" << adfsDirectory.getEntryName(entryNumber);
+
+            QString entryAttributes;
+            if (adfsDirectory.isEntryDirectory(entryNumber)) entryAttributes.append("D"); else entryAttributes.append("F");
+            if (adfsDirectory.isEntryReadable(entryNumber)) entryAttributes.append("R");
+            if (adfsDirectory.isEntryWritable(entryNumber)) entryAttributes.append("W");
+            if (adfsDirectory.isEntryLocked(entryNumber)) entryAttributes.append("L");
+            qDebug() << "  Entry" << entryNumber << "has attributes" << entryAttributes;
+
+            qDebug() << "  Entry" << entryNumber << "load address is 0x" << QString::number(adfsDirectory.getEntryLoadAddress(entryNumber), 16);
+            qDebug() << "  Entry" << entryNumber << "execution address is 0x" << QString::number(adfsDirectory.getEntryExecutionAddress(entryNumber), 16);
+            qDebug() << "  Entry" << entryNumber << "length is 0x" << QString::number(adfsDirectory.getEntryLength(entryNumber), 16);
+            qDebug() << "  Entry" << entryNumber << "start sector is 0x" << QString::number(adfsDirectory.getEntryStartSector(entryNumber), 16);
+            qDebug() << "  Entry" << entryNumber << "sequence number is" << adfsDirectory.getEntrySequenceNumber(entryNumber);
         }
     } else {
         // Root directory is not valid!

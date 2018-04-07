@@ -40,14 +40,23 @@ public:
     qint64 getMasterSequenceNumber();
     QString getIdentificationString();
     QString getEntryName(qint64 entryNumber);
-    qint64 getEntryAccess(qint64 entryNumber);
+
+    bool isEntryReadable(qint64 entryNumber);
+    bool isEntryWritable(qint64 entryNumber);
+    bool isEntryLocked(qint64 entryNumber);
+    bool isEntryDirectory(qint64 entryNumber);
+
     qint64 getEntryLoadAddress(qint64 entryNumber);
     qint64 getEntryExecutionAddress(qint64 entryNumber);
     qint64 getEntryLength(qint64 entryNumber);
     qint64 getEntryStartSector(qint64 entryNumber);
     qint64 getEntrySequenceNumber(qint64 entryNumber);
     QString getDirectoryName();
-    qint64 getDirectoryAccess();
+
+    bool isDirectoryReadable();
+    bool isDirectoryWritable();
+    bool isDirectoryLocked();
+
     QString getDirectoryTitle();
 
 private:
@@ -56,6 +65,9 @@ private:
 
     QString getTerminatedString(QByteArray data, qint64 maximumLength);
     qint64 convertBytesToInt(quint8 byte0, quint8 byte1, quint8 byte2, quint8 byte3);
+    qint64 convertBytesToInt(quint8 byte0, quint8 byte1, quint8 byte2);
+    qint64 convertBcdToInt(quint8 byte0);
+    quint8 convertIntToBcd(qint64 byte0);
 };
 
 #endif // ADFSDIRECTORY_H

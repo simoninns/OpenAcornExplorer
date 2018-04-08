@@ -27,42 +27,29 @@
 #include "discimage.h"
 
 // Class constructor
-DiscImage::DiscImage()
+DiscImage::DiscImage(QString filename)
 {
     // Set the default image attributes
     interleavedFlag = false;
     sectorSize = 256;
     discImageOpen = false;
-}
 
-// Class destructor
-DiscImage::~DiscImage()
-{
-    // Is there an open file?
-    if (discImageOpen) {
-        qDebug() << "DiscImage::~DiscImage(): Closing disc image file";
-        close();
-    }
-}
-
-bool DiscImage::open(QString filename)
-{
     // Open the file
     discImageOpen = false;
     discImageFile = new QFile(filename);
 
     if (!discImageFile->open(QIODevice::ReadWrite)) {
         qDebug() << "DiscImage::DiscImage(): Failed to open disc image file";
-        return false;
     }
 
     // Disc image file opened successfully
     discImageOpen = true;
     fileBytePosition = 0;
-    return true;
+    qDebug() << "DiscImage::DiscImage(): Disc image file opened successfully";
 }
 
-void DiscImage::close()
+// Class destructor
+DiscImage::~DiscImage()
 {
     // Is there an open file?
     if (discImageOpen) {
@@ -111,10 +98,9 @@ QByteArray DiscImage::readSector(qint64 sectorNumber)
 }
 
 // Read multiple sectors from a disc image
-QByteArray DiscImage::readSector(qint64 startSectorNumber, qint64 endSectorNumber)
+QByteArray DiscImage::readSector(qint64 startSectorNumber, qint64 numberOfSectors)
 {
     QByteArray sectorData;
-    qint64 numberOfSectors = endSectorNumber - startSectorNumber + 1;
 
     sectorData.resize(sectorSize * numberOfSectors);
 
@@ -125,7 +111,7 @@ QByteArray DiscImage::readSector(qint64 startSectorNumber, qint64 endSectorNumbe
     }
 
     // Read a sector of data starting from startByte
-    qDebug() << "DiscImage::readSector(M): Reading sectors" << startSectorNumber << "to" << endSectorNumber;
+    qDebug() << "DiscImage::readSector(M): Reading" << numberOfSectors << "sectors starting from sector" << startSectorNumber;
 
     // Check the current file position and seek if necessary
     if (fileBytePosition != translateSectorToByte(startSectorNumber)) {
@@ -209,7 +195,15 @@ void DiscImage::setInterleavedFlag(bool interleavedParam)
     interleavedFlag = interleavedParam;
 }
 
-// Private methods
+// Determine if the disc image is valid
+bool DiscImage::isValid()
+{
+    if (!discImageOpen) return false;
+
+    return true;
+}
+
+// Private methods ----------------------------------------------------------------------------------------------------
 
 // Translate a sector number to a byte position
 qint64 DiscImage::translateSectorToByte(qint64 sectorNumber)

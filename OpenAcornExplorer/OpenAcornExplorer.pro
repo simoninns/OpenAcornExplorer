@@ -26,21 +26,22 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    adfsimage.cpp \
     discimage.cpp \
     adfsfreespacemap.cpp \
     adfsdirectory.cpp \
+    aboutdialog.cpp \
     adfsdirectorymodel.cpp \
-    adfsdirectoryentry.cpp
+    adfsdirectoryitem.cpp
 
 HEADERS += \
         mainwindow.h \
-    adfsimage.h \
     discimage.h \
     adfsfreespacemap.h \
     adfsdirectory.h \
+    aboutdialog.h \
     adfsdirectorymodel.h \
-    adfsdirectoryentry.h
+    adfsdirectoryitem.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    aboutdialog.ui

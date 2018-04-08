@@ -14,77 +14,12 @@
    <string>OpenAcornExplorer</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QGroupBox" name="groupBox">
-    <property name="geometry">
-     <rect>
-      <x>670</x>
-      <y>10</y>
-      <width>131</width>
-      <height>151</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Test controls</string>
-    </property>
-    <widget class="QPushButton" name="testCreateImagePushButton">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>111</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Create image</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="testOpenImagePushButton">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>50</y>
-       <width>111</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Open image</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="testListDirectoryPushButton">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>80</y>
-       <width>111</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>List directory</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="testCloseImagePushButton">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>110</y>
-       <width>111</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Close image</string>
-     </property>
-    </widget>
-   </widget>
    <widget class="QTreeView" name="treeView">
     <property name="geometry">
      <rect>
       <x>15</x>
       <y>11</y>
-      <width>641</width>
+      <width>791</width>
       <height>561</height>
      </rect>
     </property>
@@ -127,6 +62,11 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionInsert_Row"/>
+    <addaction name="actionInsert_Column"/>
+    <addaction name="actionRemove_Row"/>
+    <addaction name="actionRemove_Column"/>
+    <addaction name="actionInsert_Child"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -154,6 +94,9 @@
    </property>
   </action>
   <action name="actionNew">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>New</string>
    </property>
@@ -164,11 +107,17 @@
    </property>
   </action>
   <action name="actionSave">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Save</string>
    </property>
   </action>
   <action name="actionSave_As">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Save As...</string>
    </property>
@@ -179,33 +128,76 @@
    </property>
   </action>
   <action name="actionUndo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Undo</string>
    </property>
   </action>
   <action name="actionCut">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Cut</string>
    </property>
   </action>
   <action name="actionPaste">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Paste</string>
    </property>
   </action>
   <action name="actionCopy">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Copy</string>
    </property>
   </action>
   <action name="actionDelete">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Delete</string>
    </property>
   </action>
   <action name="actionSelect_All">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Select All</string>
+   </property>
+  </action>
+  <action name="actionInsert_Row">
+   <property name="text">
+    <string>Insert Row</string>
+   </property>
+  </action>
+  <action name="actionInsert_Column">
+   <property name="text">
+    <string>Insert Column</string>
+   </property>
+  </action>
+  <action name="actionRemove_Row">
+   <property name="text">
+    <string>Remove Row</string>
+   </property>
+  </action>
+  <action name="actionRemove_Column">
+   <property name="text">
+    <string>Remove Column</string>
+   </property>
+  </action>
+  <action name="actionInsert_Child">
+   <property name="text">
+    <string>Insert Child</string>
    </property>
   </action>
  </widget>

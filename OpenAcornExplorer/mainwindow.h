@@ -28,8 +28,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QLabel>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QModelIndex>
 
-#include "adfsimage.h"
+#include "aboutdialog.h"
+#include "discimage.h"
 #include "adfsdirectorymodel.h"
 
 namespace Ui {
@@ -44,19 +49,31 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+public slots:
+    // Model slots
+    void updateActions();
+
 private slots:
-    void on_testCreateImagePushButton_clicked();
+    // Model slots
+    void insertChild();
+    bool insertColumn();
+    void insertRow();
+    bool removeColumn();
+    void removeRow();
 
-    void on_testOpenImagePushButton_clicked();
-
-    void on_testListDirectoryPushButton_clicked();
-
-    void on_testCloseImagePushButton_clicked();
+    // Menu bar trigger methods
+    void on_actionAbout_OpenAcornExplorer_triggered();
+    void on_actionExit_triggered();
+    void on_actionOpen_triggered();
 
 private:
     Ui::MainWindow *ui;
+    AboutDialog *aboutDialog;
+    QLabel *status;
+    QString discImageFilename;
 
-    AdfsDirectoryModel *model;
+    DiscImage *discImage;
+    AdfsDirectoryModel *adfsDirectoryModel;
 };
 
 #endif // MAINWINDOW_H

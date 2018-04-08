@@ -1,6 +1,6 @@
 /************************************************************************
 
-    adfsimage.h
+    adfsdirectoryitem.h
 
     OpenAcornExplorer - Acorn 8-bit and 32-bit disc image manipulation
     Copyright (C) 2018 Simon Inns
@@ -24,30 +24,36 @@
 
 ************************************************************************/
 
-#ifndef ADFSIMAGE_H
-#define ADFSIMAGE_H
+#ifndef ADFSDIRECTORYITEM_H
+#define ADFSDIRECTORYITEM_H
 
-#include "discimage.h"
-#include "adfsfreespacemap.h"
-#include "adfsdirectory.h"
+#include <QList>
+#include <QVariant>
+#include <QVector>
+#include <QStringList>
 
-#include <QApplication>
-#include <QDebug>
-#include <QFile>
-
-class AdfsImage
+class AdfsDirectoryItem
 {
 public:
-    AdfsImage();
+    explicit AdfsDirectoryItem(const QVector<QVariant> &data, AdfsDirectoryItem *parent = 0);
+    ~AdfsDirectoryItem();
 
-    bool open(QString filename);
-    void close();
-    void readFreeSpaceMap();
-    void readDirectory(qint64 sector);
+    AdfsDirectoryItem *child(int number);
+    int childCount() const;
+    int columnCount() const;
+    QVariant data(int column) const;
+    bool insertChildren(int position, int count, int columns);
+    bool insertColumns(int position, int columns);
+    AdfsDirectoryItem *parent();
+    bool removeChildren(int position, int count);
+    bool removeColumns(int position, int columns);
+    int childNumber() const;
+    bool setData(int column, const QVariant &value);
 
 private:
-    DiscImage *adfsDiscImage;
-
+    QList<AdfsDirectoryItem*> childItems;
+    QVector<QVariant> itemData;
+    AdfsDirectoryItem *parentItem;
 };
 
-#endif // ADFSIMAGE_H
+#endif // ADFSDIRECTORYITEM_H

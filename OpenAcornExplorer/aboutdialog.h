@@ -1,6 +1,6 @@
 /************************************************************************
 
-    adfsdirectoryentry.cpp
+    aboutdialog.h
 
     OpenAcornExplorer - Acorn 8-bit and 32-bit disc image manipulation
     Copyright (C) 2018 Simon Inns
@@ -24,53 +24,25 @@
 
 ************************************************************************/
 
-#include "adfsdirectoryentry.h"
+#ifndef ABOUTDIALOG_H
+#define ABOUTDIALOG_H
 
-AdfsDirectoryEntry::AdfsDirectoryEntry(const QList<QVariant> &data, AdfsDirectoryEntry *parent)
-{
-    m_parentItem = parent;
-    m_itemData = data;
+#include <QDialog>
+
+namespace Ui {
+class AboutDialog;
 }
 
-AdfsDirectoryEntry::~AdfsDirectoryEntry()
+class AboutDialog : public QDialog
 {
-    qDeleteAll(m_childItems);
-}
+    Q_OBJECT
 
-void AdfsDirectoryEntry::appendChild(AdfsDirectoryEntry *item)
-{
-    m_childItems.append(item);
-}
+public:
+    explicit AboutDialog(QWidget *parent = 0);
+    ~AboutDialog();
 
-AdfsDirectoryEntry *AdfsDirectoryEntry::child(int row)
-{
-    return m_childItems.value(row);
-}
+private:
+    Ui::AboutDialog *ui;
+};
 
-int AdfsDirectoryEntry::childCount() const
-{
-    return m_childItems.count();
-}
-
-int AdfsDirectoryEntry::row() const
-{
-    if (m_parentItem)
-        return m_parentItem->m_childItems.indexOf(const_cast<AdfsDirectoryEntry*>(this));
-
-    return 0;
-}
-
-int AdfsDirectoryEntry::columnCount() const
-{
-    return m_itemData.count();
-}
-
-QVariant AdfsDirectoryEntry::data(int column) const
-{
-    return m_itemData.value(column);
-}
-
-AdfsDirectoryEntry *AdfsDirectoryEntry::parentItem()
-{
-    return m_parentItem;
-}
+#endif // ABOUTDIALOG_H

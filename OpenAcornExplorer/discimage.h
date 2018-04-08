@@ -34,19 +34,18 @@
 class DiscImage
 {
 public:
-    DiscImage();
+    DiscImage(QString filename);
     ~DiscImage();
 
-    bool open(QString filename);
-    void close();
-
     QByteArray readSector(qint64 sectorNumber);
-    QByteArray readSector(qint64 startSectorNumber, qint64 endSectorNumber);
+    QByteArray readSector(qint64 startSectorNumber, qint64 numberOfSectors);
     bool writeSector(qint64 sectorNumber, QByteArray sectorData);
 
     void setSectorSize(qint64 sectorSizeParam);
     qint64 getSectorSize();
     void setInterleavedFlag(bool interleavedParam);
+
+    bool isValid();
 
 private:
     bool interleavedFlag;

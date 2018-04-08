@@ -26,109 +26,62 @@
 
 #include "adfsdirectorymodel.h"
 
-// Construct the directory entry model
-AdfsDirectoryModel::AdfsDirectoryModel(const QString &data, QObject *parent)
+//AdfsDirectoryModel::AdfsDirectoryModel(const QStringList &headers, const QString &data, QObject *parent)
+AdfsDirectoryModel::AdfsDirectoryModel(DiscImage discImage, QObject *parent)
+
     : QAbstractItemModel(parent)
 {
-    qDebug() << "DirectoryEntryModel::DirectoryEntryModel(): Creating object";
-    // Set up the root
-    QList<QVariant> rootData;
-    rootData << "Title" << "Summary";
-    rootItem = new AdfsDirectoryEntry(rootData);
-    setupModelData(data.split(QString("\n")), rootItem);
+    // Define the root item
+    QVector<QVariant> rootData;
+    rootData << "ADFS Directory Model" << "Load address" << "Execution address";
+
+    rootItem = new AdfsDirectoryItem(rootData);
+
+    // Initialise the directory data from the disc image
+    initialiseAdfsDirectoryData(discImage, rootItem);
 }
 
-// Destruct the directory entry model
 AdfsDirectoryModel::~AdfsDirectoryModel()
 {
-    qDebug() << "DirectoryEntryModel::~DirectoryEntryModel(): Deleting object";
     delete rootItem;
 }
 
-// Fetch the index for an entry
-QModelIndex AdfsDirectoryModel::index(int row, int column, const QModelIndex &parent)
-            const
+int AdfsDirectoryModel::columnCount(const QModelIndex & /* parent */) const
 {
-    if (!hasIndex(row, column, parent))
-        return QModelIndex();
-
-    AdfsDirectoryEntry *parentItem;
-
-    if (!parent.isValid())
-        parentItem = rootItem;
-    else
-        parentItem = static_cast<AdfsDirectoryEntry*>(parent.internalPointer());
-
-    AdfsDirectoryEntry *childItem = parentItem->child(row);
-    if (childItem)
-        return createIndex(row, column, childItem);
-    else
-        return QModelIndex();
+    return rootItem->columnCount();
 }
 
-// Fetch the parent for an index
-QModelIndex AdfsDirectoryModel::parent(const QModelIndex &index) const
-{
-    if (!index.isValid())
-        return QModelIndex();
-
-    AdfsDirectoryEntry *childItem = static_cast<AdfsDirectoryEntry*>(index.internalPointer());
-    AdfsDirectoryEntry *parentItem = childItem->parentItem();
-
-    if (parentItem == rootItem)
-        return QModelIndex();
-
-    return createIndex(parentItem->row(), 0, parentItem);
-}
-
-// Count the number of rows
-int AdfsDirectoryModel::rowCount(const QModelIndex &parent) const
-{
-    AdfsDirectoryEntry *parentItem;
-    if (parent.column() > 0)
-        return 0;
-
-    if (!parent.isValid())
-        parentItem = rootItem;
-    else
-        parentItem = static_cast<AdfsDirectoryEntry*>(parent.internalPointer());
-
-    return parentItem->childCount();
-}
-
-// Count the number of columns
-int AdfsDirectoryModel::columnCount(const QModelIndex &parent) const
-{
-    if (parent.isValid())
-        return static_cast<AdfsDirectoryEntry*>(parent.internalPointer())->columnCount();
-    else
-        return rootItem->columnCount();
-}
-
-// Get the data for an index
 QVariant AdfsDirectoryModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return QVariant();
 
-    if (role != Qt::DisplayRole)
+    if (role != Qt::DisplayRole && role != Qt::EditRole)
         return QVariant();
 
-    AdfsDirectoryEntry *item = static_cast<AdfsDirectoryEntry*>(index.internalPointer());
+    AdfsDirectoryItem *item = getItem(index);
 
     return item->data(index.column());
 }
 
-// Get the flags for an index
 Qt::ItemFlags AdfsDirectoryModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return 0;
 
-    return QAbstractItemModel::flags(index);
+    return Qt::ItemIsEditable | QAbstractItemModel::flags(index);
 }
 
-// Get the header data for the model
+AdfsDirectoryItem *AdfsDirectoryModel::getItem(const QModelIndex &index) const
+{
+    if (index.isValid()) {
+        AdfsDirectoryItem *item = static_cast<AdfsDirectoryItem*>(index.internalPointer());
+        if (item)
+            return item;
+    }
+    return rootItem;
+}
+
 QVariant AdfsDirectoryModel::headerData(int section, Qt::Orientation orientation,
                                int role) const
 {
@@ -138,56 +91,150 @@ QVariant AdfsDirectoryModel::headerData(int section, Qt::Orientation orientation
     return QVariant();
 }
 
-// Initialise the model's data
-void AdfsDirectoryModel::setupModelData(const QStringList &lines, AdfsDirectoryEntry *parent)
+QModelIndex AdfsDirectoryModel::index(int row, int column, const QModelIndex &parent) const
 {
-    QList<AdfsDirectoryEntry*> parents;
-    QList<int> indentations;
-    parents << parent;
-    indentations << 0;
+    if (parent.isValid() && parent.column() != 0)
+        return QModelIndex();
 
-    int number = 0;
+    AdfsDirectoryItem *parentItem = getItem(parent);
 
-    while (number < lines.count()) {
-        int position = 0;
-        while (position < lines[number].length()) {
-            if (lines[number].at(position) != ' ')
-                break;
-            position++;
+    AdfsDirectoryItem *childItem = parentItem->child(row);
+    if (childItem)
+        return createIndex(row, column, childItem);
+    else
+        return QModelIndex();
+}
+
+bool AdfsDirectoryModel::insertColumns(int position, int columns, const QModelIndex &parent)
+{
+    bool success;
+
+    beginInsertColumns(parent, position, position + columns - 1);
+    success = rootItem->insertColumns(position, columns);
+    endInsertColumns();
+
+    return success;
+}
+
+bool AdfsDirectoryModel::insertRows(int position, int rows, const QModelIndex &parent)
+{
+    AdfsDirectoryItem *parentItem = getItem(parent);
+    bool success;
+
+    beginInsertRows(parent, position, position + rows - 1);
+    success = parentItem->insertChildren(position, rows, rootItem->columnCount());
+    endInsertRows();
+
+    return success;
+}
+
+QModelIndex AdfsDirectoryModel::parent(const QModelIndex &index) const
+{
+    if (!index.isValid())
+        return QModelIndex();
+
+    AdfsDirectoryItem *childItem = getItem(index);
+    AdfsDirectoryItem *parentItem = childItem->parent();
+
+    if (parentItem == rootItem)
+        return QModelIndex();
+
+    return createIndex(parentItem->childNumber(), 0, parentItem);
+}
+
+bool AdfsDirectoryModel::removeColumns(int position, int columns, const QModelIndex &parent)
+{
+    bool success;
+
+    beginRemoveColumns(parent, position, position + columns - 1);
+    success = rootItem->removeColumns(position, columns);
+    endRemoveColumns();
+
+    if (rootItem->columnCount() == 0)
+        removeRows(0, rowCount());
+
+    return success;
+}
+
+bool AdfsDirectoryModel::removeRows(int position, int rows, const QModelIndex &parent)
+{
+    AdfsDirectoryItem *parentItem = getItem(parent);
+    bool success = true;
+
+    beginRemoveRows(parent, position, position + rows - 1);
+    success = parentItem->removeChildren(position, rows);
+    endRemoveRows();
+
+    return success;
+}
+
+int AdfsDirectoryModel::rowCount(const QModelIndex &parent) const
+{
+    AdfsDirectoryItem *parentItem = getItem(parent);
+
+    return parentItem->childCount();
+}
+
+bool AdfsDirectoryModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (role != Qt::EditRole)
+        return false;
+
+    AdfsDirectoryItem *item = getItem(index);
+    bool result = item->setData(index.column(), value);
+
+    if (result)
+        emit dataChanged(index, index);
+
+    return result;
+}
+
+bool AdfsDirectoryModel::setHeaderData(int section, Qt::Orientation orientation,
+                              const QVariant &value, int role)
+{
+    if (role != Qt::EditRole || orientation != Qt::Horizontal)
+        return false;
+
+    bool result = rootItem->setData(section, value);
+
+    if (result)
+        emit headerDataChanged(orientation, section, section);
+
+    return result;
+}
+
+void AdfsDirectoryModel::initialiseAdfsDirectoryData(DiscImage discImage, AdfsDirectoryItem *parent)
+{
+    // The root directory is stored in sectors 2 to 6 of all ADFS discs
+    QByteArray directoryData;
+    directoryData.resize(5 * discImage.getSectorSize());
+
+    // Read 5 sectors of directory data
+    qDebug() << "AdfsImage::readDirectory(): Reading directory data";
+    directoryData = discImage.readSector(2, 5);
+
+    // Create the directory object (test only!)
+    AdfsDirectory adfsDirectory;
+
+    // Put the free space map data into the object
+    if (adfsDirectory.setDirectory(directoryData)) {
+        // Define a stack for parents and place the passed (root) parent to it
+        QList<AdfsDirectoryItem*>parents;
+        parents << parent;
+
+        // Set up the root parent
+        //QVector<QVariant> columnData;
+        //columnData << "$";
+        parent->insertChildren(0, 1, 3);
+        parent->child(0)->setData(0, adfsDirectory.getDirectoryName());
+
+        qint64 entry = 0;
+        parent->child(0)->insertChildren(0, 47, 3);
+        while (!adfsDirectory.getEntryName(entry).isEmpty()) {
+            parent->child(0)->child(entry)->setData(0, adfsDirectory.getEntryName(entry));
+            parent->child(0)->child(entry)->setData(1, adfsDirectory.getEntryLoadAddress(entry));
+            parent->child(0)->child(entry)->setData(2, adfsDirectory.getEntryExecutionAddress(entry));
+            entry++;
         }
-
-        QString lineData = lines[number].mid(position).trimmed();
-
-        if (!lineData.isEmpty()) {
-            // Read the column data from the rest of the line.
-            qDebug() << "Reading column data:" << lineData;
-            QStringList columnStrings = lineData.split("\t", QString::SkipEmptyParts);
-            QList<QVariant> columnData;
-            for (int column = 0; column < columnStrings.count(); ++column) {
-                columnData << columnStrings[column];
-                qDebug() << columnStrings[column];
-            }
-
-            if (position > indentations.last()) {
-                // The last child of the current parent is now the new parent
-                // unless the current parent has no children.
-
-                if (parents.last()->childCount() > 0) {
-                    parents << parents.last()->child(parents.last()->childCount()-1);
-                    indentations << position;
-                }
-            } else {
-                while (position < indentations.last() && parents.count() > 0) {
-                    parents.pop_back();
-                    indentations.pop_back();
-                }
-            }
-
-            // Append a new item to the current parent's list of children.
-            parents.last()->appendChild(new AdfsDirectoryEntry(columnData, parents.last()));
-            qDebug() << "Appended child to model";
-        } else qDebug() << "Reading empty line...";
-
-        ++number;
     }
 }

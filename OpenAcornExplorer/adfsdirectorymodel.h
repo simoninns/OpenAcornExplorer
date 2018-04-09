@@ -72,7 +72,8 @@ public:
                     const QModelIndex &parent = QModelIndex()) override;
 
 private:
-    void initialiseAdfsDirectoryData(DiscImage discImage, AdfsDirectoryItem *parent);
+    void initialiseAdfsRootDirectory(DiscImage *discImage, AdfsDirectoryItem *parent);
+    void populateDirectory(DiscImage *discImage, AdfsDirectoryItem *parent, qint64 directorySector);
     AdfsDirectoryItem *getItem(const QModelIndex &index) const;
 
     AdfsDirectoryItem *rootItem;

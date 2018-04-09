@@ -33,12 +33,18 @@ AdfsDirectoryModel::AdfsDirectoryModel(DiscImage discImage, QObject *parent)
 {
     // Define the root item
     QVector<QVariant> rootData;
-    rootData << "ADFS Directory Model" << "Load address" << "Execution address";
+    rootData << "Filename" <<
+                "Attr" <<
+                "Seq" <<
+                "Load" <<
+                "Exec" <<
+                "Size" <<
+                "Sector";
 
     rootItem = new AdfsDirectoryItem(rootData);
 
     // Initialise the directory data from the disc image
-    initialiseAdfsDirectoryData(discImage, rootItem);
+    initialiseAdfsRootDirectory(&discImage, rootItem);
 }
 
 AdfsDirectoryModel::~AdfsDirectoryModel()
@@ -203,37 +209,67 @@ bool AdfsDirectoryModel::setHeaderData(int section, Qt::Orientation orientation,
     return result;
 }
 
-void AdfsDirectoryModel::initialiseAdfsDirectoryData(DiscImage discImage, AdfsDirectoryItem *parent)
+// Initialise the ADFS directory model from the root directory
+void AdfsDirectoryModel::initialiseAdfsRootDirectory(DiscImage *discImage, AdfsDirectoryItem *parent)
 {
-    // The root directory is stored in sectors 2 to 6 of all ADFS discs
+    // Populate the root directory (sector 2)
+    populateDirectory(discImage, parent, 2);
+}
+
+// Read a directory record and populate the ADFS directory model recursively
+void AdfsDirectoryModel::populateDirectory(DiscImage *discImage, AdfsDirectoryItem *parent, qint64 directorySector)
+{
+    // A directory record is always 5 sectors in length
     QByteArray directoryData;
-    directoryData.resize(5 * discImage.getSectorSize());
+    directoryData.resize(5 * discImage->getSectorSize());
 
     // Read 5 sectors of directory data
-    qDebug() << "AdfsImage::readDirectory(): Reading directory data";
-    directoryData = discImage.readSector(2, 5);
+    directoryData = discImage->readSector(directorySector, 5);
 
     // Create the directory object (test only!)
     AdfsDirectory adfsDirectory;
 
-    // Put the free space map data into the object
+    // Put the directory data into the object
     if (adfsDirectory.setDirectory(directoryData)) {
-        // Define a stack for parents and place the passed (root) parent to it
-        QList<AdfsDirectoryItem*>parents;
-        parents << parent;
+        // Add a child to the parent to contain the directory
+        parent->insertChildren(parent->childCount(), 1, rootItem->columnCount());
 
-        // Set up the root parent
-        //QVector<QVariant> columnData;
-        //columnData << "$";
-        parent->insertChildren(0, 1, 3);
-        parent->child(0)->setData(0, adfsDirectory.getDirectoryName());
+        // Add the entry detail columns to the parent
+        qDebug() << "AdfsImage::readDirectory(): Reading directory data for directory" << adfsDirectory.getDirectoryName();
+        parent->child(parent->childCount() - 1)->setData(0, adfsDirectory.getDirectoryName());
+        parent->child(parent->childCount() - 1)->setData(2, adfsDirectory.getMasterSequenceNumber());
 
+        // Make the new child the parent
+        QList<AdfsDirectoryItem*> dir;
+        dir << parent->child(parent->childCount() - 1);
+        AdfsDirectoryItem *parent = dir.last();
+
+        // Now add a child to this parent for every entry in the directory
         qint64 entry = 0;
-        parent->child(0)->insertChildren(0, 47, 3);
-        while (!adfsDirectory.getEntryName(entry).isEmpty()) {
-            parent->child(0)->child(entry)->setData(0, adfsDirectory.getEntryName(entry));
-            parent->child(0)->child(entry)->setData(1, adfsDirectory.getEntryLoadAddress(entry));
-            parent->child(0)->child(entry)->setData(2, adfsDirectory.getEntryExecutionAddress(entry));
+        // An empty entry name indicates the end of the directory
+        while (!adfsDirectory.getEntryName(entry).isEmpty() && entry <= 47) {
+            // Is this a file or a directory entry?
+            if (adfsDirectory.isEntryDirectory(entry)) {
+                // Entry is a directory
+
+                // Populate the sub-directory
+                populateDirectory(discImage, parent, adfsDirectory.getEntryStartSector(entry));
+            } else {
+                // Entry is a file - populate the details
+                qDebug() << "Entry" << adfsDirectory.getEntryName(entry) << "is a file";
+
+                // Add a child to contain the file details
+                parent->insertChildren(parent->childCount(), 1, rootItem->columnCount());
+
+                parent->child(parent->childCount() - 1)->setData(0, adfsDirectory.getEntryName(entry));
+                parent->child(parent->childCount() - 1)->setData(2, adfsDirectory.getEntrySequenceNumber(entry));
+                parent->child(parent->childCount() - 1)->setData(3, adfsDirectory.getEntryLoadAddress(entry));
+                parent->child(parent->childCount() - 1)->setData(4, adfsDirectory.getEntryExecutionAddress(entry));
+                parent->child(parent->childCount() - 1)->setData(5, adfsDirectory.getEntryLength(entry));
+                parent->child(parent->childCount() - 1)->setData(6, adfsDirectory.getEntryStartSector(entry));
+            }
+
+            // Next
             entry++;
         }
     }

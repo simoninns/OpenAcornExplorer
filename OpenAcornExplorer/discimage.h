@@ -39,22 +39,22 @@ public:
 
     QByteArray readSector(qint64 sectorNumber);
     QByteArray readSector(qint64 startSectorNumber, qint64 numberOfSectors);
-    bool writeSector(qint64 sectorNumber, QByteArray sectorData);
 
-    void setSectorSize(qint64 sectorSizeParam);
     qint64 getSectorSize();
-    void setInterleavedFlag(bool interleavedParam);
-
     bool isValid();
 
 private:
-    bool interleavedFlag;
-    qint64 sectorSize;
     QFile *discImageFile;
     bool discImageOpen;
-    qint64 fileBytePosition;
 
-    qint64 translateSectorToByte(qint64 sectorNumber);
+    // Disc geometry
+    qint64 tracks;
+    qint64 sides;
+    qint64 sectorsPerTrack;
+    qint64 sectorSize;
+    qint64 startSector;
+
+    qint64 translateSectorToByte(qint64 sector);
 };
 
 #endif // DISCIMAGE_H

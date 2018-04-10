@@ -123,8 +123,13 @@ void MainWindow::on_actionOpen_triggered()
     // Create the model and update the UI treeview
     adfsDirectoryModel = new AdfsDirectoryModel(*discImage);
     ui->treeView->setModel(adfsDirectoryModel);
-
-
+    ui->treeView->setColumnWidth(0,200);    // Filename
+    ui->treeView->setColumnWidth(1,50);     // Attr
+    ui->treeView->setColumnWidth(2,50);     // Seq
+    ui->treeView->setColumnWidth(3,50);     // Load
+    ui->treeView->setColumnWidth(4,50);     // Exec
+    ui->treeView->setColumnWidth(5,50);     // Size
+    ui->treeView->setColumnWidth(6,50);     // Sector
 
     // Update the status bar
     status->setText(tr("Disc image loaded"));
